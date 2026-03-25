@@ -1,0 +1,10 @@
+hindiscriptc.exe
+.hs_tmp_gen.c
+.hs_tmp_gen.exe
+.dg_test.c
+.dg_test.exe
+build/
+src/compiler/lexer.yy.c
+src/compiler/parser.tab.c
+src/compiler/parser.tab.h
+src/lexer/lex.yy.c
