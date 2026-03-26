@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#ifdef _WIN32
+#include <direct.h>
+#endif
 
 #include "ast.h"
 #include "codegen.h"
@@ -45,7 +49,34 @@ static int run_codegen_and_exec(const Program* program, const char* c_path, cons
 }
 
 static void usage(const char* prog) {
-    fprintf(stderr, "Usage: %s <input.hs> [--check|--run|--run-interpreter|--emit-c]\n", prog);
+    fprintf(stderr, "Usage: %s <input.hs> [--check|--run|--run-interpreter|--emit-c|--emit-ast]\n", prog);
+}
+
+static int ensure_build_dir(void) {
+#ifdef _WIN32
+    if (_mkdir("build") == 0 || errno == EEXIST) return 1;
+#else
+    if (mkdir("build", 0777) == 0 || errno == EEXIST) return 1;
+#endif
+    return 0;
+}
+
+static int write_ast_file(const Program* program) {
+    FILE* out;
+    if (!ensure_build_dir()) {
+        fprintf(stderr, "Error [io] line 0: cannot create 'build' directory\n");
+        return 0;
+    }
+
+    out = fopen("build/ast.txt", "wb");
+    if (!out) {
+        fprintf(stderr, "Error [io] line 0: cannot write 'build/ast.txt'\n");
+        return 0;
+    }
+
+    hs_print_ir(program, out);
+    fclose(out);
+    return 1;
 }
 
 int main(int argc, char** argv) {
@@ -81,6 +112,12 @@ int main(int argc, char** argv) {
     if (strcmp(mode, "--check") == 0) {
         hs_free_program(program);
         return 0;
+    }
+
+    if (strcmp(mode, "--emit-ast") == 0) {
+        ok = write_ast_file(program);
+        hs_free_program(program);
+        return ok ? 0 : 1;
     }
 
     if (!hs_semantic_check(program)) {
