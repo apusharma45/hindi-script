@@ -6,6 +6,12 @@
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1
 ```
 
+Build artifacts:
+- `build/parser.tab.c`
+- `build/parser.tab.h`
+- `build/lexer.yy.c`
+- `build/parser.output` (Bison state/parse table report)
+
 ## Test
 
 ```powershell
@@ -15,13 +21,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test.ps1
 ## CLI
 
 ```text
-hindiscriptc <input.hs> [--check|--run|--run-interpreter|--emit-c]
+hindiscriptc <input.hs> [--check|--run|--run-interpreter|--emit-c|--emit-ast]
 ```
 
 - `--check`: lexical + syntax validation only.
 - `--run`: generate C with `gcc`, execute native binary.
 - `--run-interpreter`: execute AST interpreter.
 - `--emit-c`: print generated C to stdout.
+- `--emit-ast`: write AST dump to `build/ast.txt`.
 
 Test suites:
 - `tests/ok`: valid programs and expected outputs
