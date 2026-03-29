@@ -30,6 +30,12 @@ hindiscriptc <input.hs> [--check|--run|--run-interpreter|--emit-c|--emit-ast]
 - `--emit-c`: print generated C to stdout.
 - `--emit-ast`: write AST dump to `build/ast.txt`.
 
+## Language Notes
+
+Implemented core statements and expressions, plus:
+- Pipeline operator: `expr |> func(...)`
+- Guard rules: `jab ...`, `anya jab ...`, `anya ...`
+
 Test suites:
 - `tests/ok`: valid programs and expected outputs
 - `tests/err`: lexical/syntax failure cases

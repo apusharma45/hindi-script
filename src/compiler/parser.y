@@ -1,5 +1,6 @@
 %{
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "ast.h"
 
@@ -50,19 +51,20 @@ void yyerror(const char* s) {
     ExprVec exprs;
 }
 
-%token RAKHO ME LIKHO AGAR TO WARNA JABTAK SHURU KHATAM BANAO WAPAS
+%token RAKHO ME LIKHO AGAR TO WARNA JABTAK JAB ANYA SHURU KHATAM BANAO WAPAS
 %token GTE LTE EQ NEQ GT LT
-%token PLUS MINUS MUL DIV
+%token PLUS MINUS MUL DIV PIPE
 %token LPAREN RPAREN COMMA
 %token <number> NUMBER
 %token <text> IDENT
 
 %type <expr> expr
-%type <stmt> stmt assign_stmt print_stmt if_stmt while_stmt func_stmt return_stmt
+%type <stmt> stmt assign_stmt print_stmt if_stmt while_stmt func_stmt return_stmt guard_stmt
 %type <stmts> stmt_list
 %type <strs> param_list
 %type <exprs> arg_list opt_arg_list
 
+%left PIPE
 %left EQ NEQ GT LT GTE LTE
 %left PLUS MINUS
 %left MUL DIV
@@ -85,6 +87,7 @@ stmt
     : assign_stmt { $$ = $1; }
     | print_stmt { $$ = $1; }
     | if_stmt { $$ = $1; }
+    | guard_stmt { $$ = $1; }
     | while_stmt { $$ = $1; }
     | func_stmt { $$ = $1; }
     | return_stmt { $$ = $1; }
@@ -105,6 +108,21 @@ if_stmt
       }
     | AGAR expr TO SHURU stmt_list KHATAM WARNA SHURU stmt_list KHATAM {
         $$ = hs_make_if($2, $5, $9, 1, yylineno);
+      }
+    ;
+
+guard_stmt
+    : JAB expr TO SHURU stmt_list KHATAM {
+        StmtVec empty_else = hs_empty_stmt_vec();
+        $$ = hs_make_if($2, $5, empty_else, 0, yylineno);
+      }
+    | JAB expr TO SHURU stmt_list KHATAM ANYA SHURU stmt_list KHATAM {
+        $$ = hs_make_if($2, $5, $9, 1, yylineno);
+      }
+    | JAB expr TO SHURU stmt_list KHATAM ANYA guard_stmt {
+        StmtVec else_wrap = hs_empty_stmt_vec();
+        hs_stmt_vec_push(&else_wrap, $8);
+        $$ = hs_make_if($2, $5, else_wrap, 1, yylineno);
       }
     ;
 
@@ -141,6 +159,14 @@ expr
     | expr LTE expr { $$ = hs_make_binary(OP_LTE, $1, $3, yylineno); }
     | expr EQ expr { $$ = hs_make_binary(OP_EQ, $1, $3, yylineno); }
     | expr NEQ expr { $$ = hs_make_binary(OP_NEQ, $1, $3, yylineno); }
+    | expr PIPE IDENT LPAREN opt_arg_list RPAREN {
+        ExprVec v = hs_empty_expr_vec();
+        int i;
+        hs_expr_vec_push(&v, $1);
+        for (i = 0; i < $5.len; i++) hs_expr_vec_push(&v, $5.items[i]);
+        free($5.items);
+        $$ = hs_make_call($3, v, yylineno);
+      }
     ;
 
 opt_arg_list
@@ -183,3 +209,4 @@ Program* hs_parse_file(FILE* in) {
 int hs_parse_had_error(void) {
     return g_parse_error;
 }
+

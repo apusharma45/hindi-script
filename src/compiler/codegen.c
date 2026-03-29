@@ -108,9 +108,9 @@ static void emit_stmt_list(const StmtVec* list, FILE* out, int depth) {
                 fputs(";\n", out);
                 break;
             case STMT_PRINT:
-                fputs("printf(\"%g\\n\", ", out);
+                fputs("printf(\"%g\\n\", (double)(", out);
                 emit_expr(s->as.print.value, out);
-                fputs(");\n", out);
+                fputs("));\n", out);
                 break;
             case STMT_RETURN:
                 fputs("return ", out);
@@ -199,3 +199,4 @@ int hs_emit_c_program(const Program* p, FILE* out) {
     fputs("}\n", out);
     return 1;
 }
+

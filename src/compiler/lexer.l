@@ -35,11 +35,14 @@ FLOAT   [0-9]+\.[0-9]+
 "to"        { return TO; }
 "warna"     { return WARNA; }
 "jabtak"    { return JABTAK; }
+"jab"       { return JAB; }
+"anya"      { return ANYA; }
 "shuru"     { return SHURU; }
 "khatam"    { return KHATAM; }
 "banao"     { return BANAO; }
 "wapas"     { return WAPAS; }
 
+"|>"        { return PIPE; }
 ">="        { return GTE; }
 "<="        { return LTE; }
 "=="        { return EQ; }

@@ -4,7 +4,7 @@
 
 ### 1. Lexical Analysis using Flex
 - Implemented in `src/compiler/lexer.l`.
-- Token coverage includes keywords, identifiers, numbers, operators, function-call punctuation.
+- Token coverage includes keywords, identifiers, numbers, operators, function-call punctuation, pipeline `|>`, and guard keywords `jab`/`anya`.
 - Invalid token handling:
   - Illegal characters: `Error [lexical] line <n>: illegal character ...`
   - Bad number format (`12.3.4`): explicit lexical error.
@@ -15,10 +15,11 @@
   - assignment: `rakho x me expr`
   - print: `likho expr`
   - if/else: `agar cond to shuru ... khatam [warna shuru ... khatam]`
+  - guard rules: `jab ...`, `anya jab ...`, `anya ...`
   - while: `jabtak cond shuru ... khatam`
   - function definition: `banao name params... shuru ... khatam`
   - return: `wapas expr`
-  - expressions with precedence + function calls
+  - expressions with precedence, function calls, and pipeline chaining `expr |> func(...)`
 - Syntax errors include line number and phase tag.
 
 ### 3. Correctness of Execution Behavior
@@ -34,7 +35,10 @@
   - Native C backend: `--run`
 
 ### 4. Unique / Advanced Feature
-- Not included in the current build. Focus is on core lexer, parser, semantic/runtime correctness, and C backend execution.
+- Pipeline operator (`|>`) implemented for function chaining.
+- Guard rule syntax (`jab / anya`) implemented as an alternative to nested if/else.
+- Parse table/state report generated at build time (`build/parser.output`).
+- AST dump output generated on demand (`--emit-ast` -> `build/ast.txt`).
 
 ## Test Evidence
 
