@@ -104,6 +104,14 @@ Stmt* hs_make_print(Expr* value, int line) {
     return s;
 }
 
+Stmt* hs_make_print_text(char* text, int line) {
+    Stmt* s = (Stmt*)hs_malloc(sizeof(Stmt));
+    s->kind = STMT_PRINT_TEXT;
+    s->line = line;
+    s->as.print_text.text = text;
+    return s;
+}
+
 Stmt* hs_make_if(Expr* cond, StmtVec then_body, StmtVec else_body, int has_else, int line) {
     Stmt* s = (Stmt*)hs_malloc(sizeof(Stmt));
     s->kind = STMT_IF;
@@ -183,6 +191,9 @@ void hs_free_stmt(Stmt* s) {
             break;
         case STMT_PRINT:
             hs_free_expr(s->as.print.value);
+            break;
+        case STMT_PRINT_TEXT:
+            free(s->as.print_text.text);
             break;
         case STMT_IF:
             hs_free_expr(s->as.if_stmt.cond);
@@ -279,6 +290,9 @@ static void hs_ir_stmts(const StmtVec* v, FILE* out, int depth) {
             case STMT_PRINT:
                 fputs("print\n", out);
                 hs_ir_expr(s->as.print.value, out, depth + 1);
+                break;
+            case STMT_PRINT_TEXT:
+                fprintf(out, "print_text \"%s\"\n", s->as.print_text.text);
                 break;
             case STMT_RETURN:
                 fputs("return\n", out);

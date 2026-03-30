@@ -26,6 +26,23 @@ static void names_free(NameVec* v) {
     free(v->items);
 }
 
+static void emit_c_string_literal(FILE* out, const char* s) {
+    const unsigned char* p = (const unsigned char*)s;
+    fputc('"', out);
+    while (*p) {
+        switch (*p) {
+            case '"': fputs("\\\"", out); break;
+            case '\\': fputs("\\\\", out); break;
+            case '\n': fputs("\\n", out); break;
+            case '\r': fputs("\\r", out); break;
+            case '\t': fputs("\\t", out); break;
+            default: fputc((int)(*p), out); break;
+        }
+        p++;
+    }
+    fputc('"', out);
+}
+
 static void emit_expr(const Expr* e, FILE* out) {
     int i;
     switch (e->kind) {
@@ -112,6 +129,11 @@ static void emit_stmt_list(const StmtVec* list, FILE* out, int depth) {
                 emit_expr(s->as.print.value, out);
                 fputs("));\n", out);
                 break;
+            case STMT_PRINT_TEXT:
+                fputs("printf(\"%s\\n\", ", out);
+                emit_c_string_literal(out, s->as.print_text.text);
+                fputs(");\n", out);
+                break;
             case STMT_RETURN:
                 fputs("return ", out);
                 emit_expr(s->as.ret.value, out);
@@ -176,6 +198,11 @@ static void emit_var_decls(const StmtVec* list, FILE* out, int depth, const StrV
 int hs_emit_c_program(const Program* p, FILE* out) {
     int i, j;
     fputs("#include <stdio.h>\n\n", out);
+    fputs("static double padho(void) {\n", out);
+    fputs("    double v = 0.0;\n", out);
+    fputs("    if (scanf(\"%lf\", &v) != 1) return 0.0;\n", out);
+    fputs("    return v;\n", out);
+    fputs("}\n\n", out);
 
     for (i = 0; i < p->statements.len; i++) {
         const Stmt* s = p->statements.items[i];
@@ -199,4 +226,3 @@ int hs_emit_c_program(const Program* p, FILE* out) {
     fputs("}\n", out);
     return 1;
 }
-

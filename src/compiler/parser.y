@@ -56,7 +56,7 @@ void yyerror(const char* s) {
 %token PLUS MINUS MUL DIV PIPE
 %token LPAREN RPAREN COMMA
 %token <number> NUMBER
-%token <text> IDENT
+%token <text> IDENT STRING
 
 %type <expr> expr
 %type <stmt> stmt assign_stmt print_stmt if_stmt while_stmt func_stmt return_stmt guard_stmt
@@ -99,6 +99,7 @@ assign_stmt
 
 print_stmt
     : LIKHO expr { $$ = hs_make_print($2, yylineno); }
+    | LIKHO STRING { $$ = hs_make_print_text($2, yylineno); }
     ;
 
 if_stmt

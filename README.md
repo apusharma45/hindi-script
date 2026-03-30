@@ -1,10 +1,22 @@
 # HindiScript Compiler (MWL Core)
 
-## Build
+## Build (PowerShell)
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1
 ```
+
+## Build (Makefile)
+
+```powershell
+mingw32-make build
+```
+
+Other Make targets:
+- `mingw32-make test`
+- `mingw32-make demo`
+- `mingw32-make clean`
+- `mingw32-make rebuild`
 
 Build artifacts:
 - `build/parser.tab.c`

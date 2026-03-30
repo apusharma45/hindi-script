@@ -17,6 +17,7 @@ typedef enum {
 typedef enum {
     STMT_ASSIGN,
     STMT_PRINT,
+    STMT_PRINT_TEXT,
     STMT_IF,
     STMT_WHILE,
     STMT_FUNC,
@@ -89,6 +90,9 @@ struct Stmt {
             Expr* value;
         } print;
         struct {
+            char* text;
+        } print_text;
+        struct {
             Expr* cond;
             StmtVec then_body;
             StmtVec else_body;
@@ -127,6 +131,7 @@ Expr* hs_make_call(char* callee, ExprVec args, int line);
 
 Stmt* hs_make_assign(char* name, Expr* value, int line);
 Stmt* hs_make_print(Expr* value, int line);
+Stmt* hs_make_print_text(char* text, int line);
 Stmt* hs_make_if(Expr* cond, StmtVec then_body, StmtVec else_body, int has_else, int line);
 Stmt* hs_make_while(Expr* cond, StmtVec body, int line);
 Stmt* hs_make_func(char* name, StrVec params, StmtVec body, int line);

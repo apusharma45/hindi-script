@@ -129,6 +129,10 @@ static int collect_functions(Context* ctx) {
     for (i = 0; i < ctx->program->statements.len; i++) {
         const Stmt* s = ctx->program->statements.items[i];
         if (s->kind != STMT_FUNC) continue;
+        if (strcmp(s->as.func.name, "padho") == 0) {
+            hs_error(ctx, s->line, "function name 'padho' is reserved for builtin input");
+            return 0;
+        }
         if (func_find(ctx, s->as.func.name) >= 0) {
             hs_error(ctx, s->line, "duplicate function '%s'", s->as.func.name);
             return 0;
@@ -145,6 +149,21 @@ static int eval_call(Context* ctx, Scope* caller_scope, const Expr* e, double* o
     Scope fn_scope;
     ExecSignal sig;
     const Stmt* fn_stmt;
+
+    if (strcmp(e->as.call.callee, "padho") == 0) {
+        if (e->as.call.args.len != 0) {
+            hs_error(ctx, e->line, "arity mismatch for 'padho': expected 0, got %d", e->as.call.args.len);
+            return 0;
+        }
+        if (!ctx->out) {
+            *out = 0.0;
+            return 1;
+        }
+        if (scanf("%lf", out) != 1) {
+            *out = 0.0;
+        }
+        return 1;
+    }
 
     idx = func_find(ctx, e->as.call.callee);
     if (idx < 0) {
@@ -196,6 +215,8 @@ static int eval_call(Context* ctx, Scope* caller_scope, const Expr* e, double* o
                     double v = 0.0;
                     if (!eval_expr(ctx, &fn_scope, s->as.print.value, &v)) break;
                     if (ctx->out) fprintf(ctx->out, "%g\n", v);
+                } else if (s->kind == STMT_PRINT_TEXT) {
+                    if (ctx->out) fprintf(ctx->out, "%s\n", s->as.print_text.text);
                 } else if (s->kind == STMT_IF) {
                     double cond = 0.0;
                     int k;
@@ -219,6 +240,8 @@ static int eval_call(Context* ctx, Scope* caller_scope, const Expr* e, double* o
                                     double bv;
                                     if (!eval_expr(ctx, &fn_scope, bs->as.print.value, &bv)) break;
                                     if (ctx->out) fprintf(ctx->out, "%g\n", bv);
+                                } else if (bs->kind == STMT_PRINT_TEXT) {
+                                    if (ctx->out) fprintf(ctx->out, "%s\n", bs->as.print_text.text);
                                 }
                             }
                         }
@@ -249,6 +272,8 @@ static int eval_call(Context* ctx, Scope* caller_scope, const Expr* e, double* o
                                 double bv;
                                 if (!eval_expr(ctx, &fn_scope, bs->as.print.value, &bv)) break;
                                 if (ctx->out) fprintf(ctx->out, "%g\n", bv);
+                            } else if (bs->kind == STMT_PRINT_TEXT) {
+                                if (ctx->out) fprintf(ctx->out, "%s\n", bs->as.print_text.text);
                             }
                         }
                         if (inner.has_return || ctx->has_error) break;
@@ -349,6 +374,10 @@ static int exec_block(Context* ctx, Scope* scope, const StmtVec* body, ExecSigna
             double v;
             if (!eval_expr(ctx, scope, s->as.print.value, &v)) return 0;
             if (ctx->out) fprintf(ctx->out, "%g\n", v);
+            continue;
+        }
+        if (s->kind == STMT_PRINT_TEXT) {
+            if (ctx->out) fprintf(ctx->out, "%s\n", s->as.print_text.text);
             continue;
         }
         if (s->kind == STMT_IF) {
